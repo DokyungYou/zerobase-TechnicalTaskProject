@@ -2,6 +2,7 @@ package com.zerobase.shopreservation.entity;
 
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -13,11 +14,12 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Shop {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private long id;
 
 
     /**
@@ -35,6 +37,9 @@ public class Shop {
     @Column
     private String shopIntroduction;
 
+
+    @Column
+    private String contactNumber;
 
     /**
      * 가게 위치
@@ -90,11 +95,12 @@ public class Shop {
     /**
      * 별점, 리뷰수
      */
+    // 원래 warpper 타입으로 했다가 기본타입으로 바꿈
     @Column
     private double averageShopRating;
 
     @Column
-    private Long reviewCount;
+    private long reviewCount;
 
 
     /**
@@ -105,6 +111,16 @@ public class Shop {
 
     @Column
     private LocalDateTime updateDate;
+
+
+
+    @ManyToOne
+    @JoinColumn
+    UserPartner userPartner;
+
+
+    @Column
+    private String businessRegistrationNumber;
 
 
 }

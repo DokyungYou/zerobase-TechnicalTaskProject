@@ -29,6 +29,7 @@ public class ServiceResult {
     }
 
 
+
     //귀찮아서 만든 함수..?
     public  boolean isFail(){
         return !this.result;

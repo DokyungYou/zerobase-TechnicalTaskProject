@@ -34,10 +34,10 @@ public class SignUpCustomerInput {
     //수정필요
     @Size(max = 20, message = "연락처는 최대 20자까지만 유효합니다.")
     @NotBlank(message = "전화번호는 필수 항목 입니다!")
+    @Pattern(regexp = "^\\d{3}-\\d{4}-\\d{4}$|^\\d{3}-\\d{3}-\\d{4}$", message = "유효하지 않은 핸드폰 번호 형식입니다.")
     private String phoneNumber;
 
 
-    //닉네임 넣을지 말지 고민중
     @Pattern(regexp = "^[ㄱ-ㅎ가-힣a-z0-9-_]{2,10}$", message = "닉네임은 특수문자를 제외한 2~10자리여야 합니다.")
     private String nickname;
 }

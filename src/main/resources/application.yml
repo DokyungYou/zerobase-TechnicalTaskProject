@@ -9,9 +9,10 @@ spring:
 
 
   jpa: #?? ?? , ?? ??? ??? none, false -> ???, ???,sql ? ?? ?? ????? ??
+    database-platform: org.hibernate.dialect.MariaDB103Dialect
     hibernate:
-      ddl-auto: none
-    generate-ddl: false
+      ddl-auto: create
+    generate-ddl: true
 
     properties:
       format_sql: true

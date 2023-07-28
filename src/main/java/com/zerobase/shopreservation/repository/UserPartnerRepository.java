@@ -15,4 +15,7 @@ public interface UserPartnerRepository extends JpaRepository<UserPartner,Long> {
 
     Optional<UserPartner> findByPhoneNumber(String phoneNumber);
 
+    Optional<UserPartner> findByBusinessRegistrationNumber(String businessRegistrationNumber);
+
+
 }

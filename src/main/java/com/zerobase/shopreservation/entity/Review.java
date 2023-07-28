@@ -2,6 +2,7 @@ package com.zerobase.shopreservation.entity;
 
 import com.zerobase.shopreservation.type.ShopRating;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Review {
 
     @Id
@@ -20,7 +22,7 @@ public class Review {
 
 
     @Column
-    private String text;
+    private String content;
 
     @Column
     @Enumerated(EnumType.ORDINAL)

@@ -15,15 +15,17 @@ import java.time.LocalDateTime;
 @Builder
 public class UserCustomer {
 
+    // 유니크 키로 넣고, 따로 예외처리를 할까, 넣지 말고 if(데이터 존재){return false}형식으로 할까 고민중
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
+    @Column
     private String customerId;
 
 
-    @Column(unique = true)
+    @Column
     private String email;
 
     @Column(nullable = false)
@@ -47,7 +49,8 @@ public class UserCustomer {
     private LocalDateTime updateDate;
 
 
-    @Column(unique = true)
+
+    @Column
     private String nickName;
 
 

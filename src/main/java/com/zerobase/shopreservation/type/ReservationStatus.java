@@ -1,8 +1,15 @@
 package com.zerobase.shopreservation.type;
 
 public enum ReservationStatus {
-
-    APPROVED,
     WAITING,
-    REJECTED
+    APPROVED,
+    REJECTED;
+
+    String value;
+
+    public String getValue() {
+        return this.value;
+    }
+
+
 }

@@ -2,6 +2,7 @@ package com.zerobase.shopreservation.entity;
 
 import com.zerobase.shopreservation.type.ReservationStatus;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Reservation {
 
     @Id
@@ -19,20 +21,46 @@ public class Reservation {
     private Long id;
 
 
+    // 토큰에서 빼서 넣기?
     @ManyToOne
     @JoinColumn
-    Shop shop;
+    private UserCustomer userCustomer;
+
+
+    @ManyToOne
+    @JoinColumn
+    private Shop shop;
+
+
+    // 예약인원, 특이사항 등의 내용
+    @Column
+    private String reservationContents;
 
     @Column
-    String persons;
+    private String phoneNumber;
+
 
     @Column
-    LocalDateTime reservationDateTime;
+    private LocalDateTime reservationDateTime;
+
+
+    // 이건 없어질지도
+    @Column
+    private boolean arrivedReservationTime;
+
 
     @Column
     @Enumerated(EnumType.STRING)
-    ReservationStatus reservationStatus;
+    private ReservationStatus reservationStatus;
+
+
+    // 예약요청등록
+    @Column
+    private LocalDateTime regDate;
 
     @Column
-    boolean arrivedReservationTime;
+    private LocalDateTime statusUpdate;
+
+
+
 }

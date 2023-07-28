@@ -16,13 +16,16 @@ import java.util.List;
 @Builder
 public class UserPartner {
 
+    // 유니크 키로 넣고, 따로 예외처리를 할까, 넣지 말고 if(데이터 존재){return false}형식으로 할까 고민중
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     //
-    @Column(unique = true)
+    @Column
     private String email;
+
 
     @Column(nullable = false)
     private String partnerId;
@@ -55,9 +58,10 @@ public class UserPartner {
 
 
 
-    //이게 맞나?
-    @OneToMany
-    private List<Shop> shop;
+//    //이게 맞나?
+//    @OneToMany
+//    private List<Shop> shop;
+
 
 
 }

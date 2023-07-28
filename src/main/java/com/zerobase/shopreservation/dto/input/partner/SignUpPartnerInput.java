@@ -1,4 +1,4 @@
-package com.zerobase.shopreservation.dto.input;
+package com.zerobase.shopreservation.dto.input.partner;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +16,7 @@ import javax.validation.constraints.Size;
 @Builder
 public class SignUpPartnerInput {
 
-    @NotBlank
+    @NotBlank(message = "사업자등록번호는 필수 입력값입니다.")
     @Pattern(regexp = "^\\d{3}-\\d{2}-\\d{5}$", message = "사업자 등록 번호 형태가 아닙니다.")
     private String businessRegistrationNumber;
 
@@ -38,6 +38,7 @@ public class SignUpPartnerInput {
     //수정필요
     @Size(max = 20, message = "연락처는 최대 20자까지만 유효합니다.")
     @NotBlank(message = "전화번호는 필수 항목 입니다!")
+    @Pattern(regexp = "^\\d{3}-\\d{4}-\\d{4}$|^\\d{3}-\\d{3}-\\d{4}$", message = "유효하지 않은 핸드폰 번호 형식입니다.")
     private String phoneNumber;
 
 
