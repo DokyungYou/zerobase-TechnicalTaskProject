@@ -16,4 +16,6 @@ public interface ReservationRepository extends JpaRepository<Reservation,Long> {
 
     Optional<Reservation> findByIdAndShop(Long id, Shop shop);
 
+    Optional<Reservation> findByPhoneNumber(String phoneNumber);
+
 }

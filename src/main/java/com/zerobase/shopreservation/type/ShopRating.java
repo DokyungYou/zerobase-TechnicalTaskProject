@@ -11,11 +11,13 @@ public enum ShopRating {
 
     int value;
 
+    ShopRating(int value){
+        this.value = value;
+    }
+
     public int getValue(){
         return this.value;
     }
 
-    ShopRating(int value){
-        this.value = value;
-    }
+
 }

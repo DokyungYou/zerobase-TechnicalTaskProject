@@ -67,7 +67,7 @@ public class Shop {
      * 예약관련
      */
     @Column
-    private boolean reservation;
+    private boolean bookable;
 
     @Column
     private String reservationType;

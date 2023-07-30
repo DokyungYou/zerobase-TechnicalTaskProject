@@ -101,6 +101,11 @@ public class PartnerController {
             return ResponseEntity.badRequest().body(ResponseError.of(allErrors));
         }
 
+        if(shopRegisterInput.getShopTypes().isEmpty()){
+            return new ResponseEntity<>("가게유형을 1개이상 선택해야합니다.", HttpStatus.BAD_REQUEST);
+        }
+
+
          ServiceResult result = partnerService.registerShop(shopRegisterInput, email);
 
         return ResponseResult.result(result);

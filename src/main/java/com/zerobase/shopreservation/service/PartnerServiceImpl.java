@@ -15,6 +15,7 @@ import com.zerobase.shopreservation.repository.ShopRepository;
 import com.zerobase.shopreservation.repository.UserPartnerRepository;
 //import com.zerobase.shopreservation.util.PasswordUtils;
 import com.zerobase.shopreservation.type.ReservationStatus;
+import com.zerobase.shopreservation.type.ShopType;
 import com.zerobase.shopreservation.util.JWTUtils;
 import com.zerobase.shopreservation.util.PasswordUtils;
 import lombok.RequiredArgsConstructor;
@@ -116,25 +117,53 @@ public class PartnerServiceImpl implements PartnerService{
         }
 
         UserPartner partner = optionalUserPartner.get();
+        
+//        // 열거형으로 들여온거를 , ,의 형태의 String으로 넣고 , 나중에 특정 가게타입의 문자열 포함한 애들로 검색가능하게
+//        StringBuilder sb = new StringBuilder();
+//        sb.append(shopRegisterInput.getShopType()[0]);
+//        for (int i = 1; i < shopRegisterInput.getShopType(); i++) {
+//            sb.append(shopRegisterInput.getShopType()[i]);
+//        }
+
+
+
+        // 가게 타입 여러개인거 받음 (NUll 예외 확률 높으니 수정하자)
+        // 근데 List타입의 데이터를 유효성 검사하기가 애매해서 좀.. 흠...
+        StringBuilder sb = new StringBuilder();
+        for(ShopType shopType : shopRegisterInput.getShopTypes()){
+            sb.append(shopType.getTypeName()+ ",");
+        }
+        String shopType = sb.toString();
+
+
 
         //이거 Shop 클래스의 메소드로 따로 뺼까...
+        // shopTypes 받아온거 문자열로 나열해서 넣는 메소드도 따로 빼자
         Shop shop = Shop.builder()
                         .takeOut(shopRegisterInput.isTakeOut())
                         .wifi(shopRegisterInput.isWifi())
                         .parking(shopRegisterInput.isParking())
                         .facilitiesForDisabled(shopRegisterInput.isFacilitiesForDisabled())
                         .seats(shopRegisterInput.getSeats())
-                        .reservation(shopRegisterInput.isReservation())
+                        .bookable(shopRegisterInput.isBookable())
                         .reservationType(shopRegisterInput.getReservationType())
                         .operatingHours(shopRegisterInput.getOperatingHours())
                         .dayOff(shopRegisterInput.getDayOff())
                         .shopAddress(shopRegisterInput.getShopAddress())
-                        .longitude(shopRegisterInput.getLongitude())
-                        .latitude(shopRegisterInput.getLatitude())
+
+
+                // 일단 임시로 주석 처리
+//                        .longitude(shopRegisterInput.getCoordinate().getLongitude())
+//                        .latitude(shopRegisterInput.getCoordinate().getLatitude())
+
                         .contactNumber(shopRegisterInput.getContactNumber())
                         .shopIntroduction(shopRegisterInput.getShopIntroduction())
-                        .shopType(shopRegisterInput.getShopType())
+
                         .shopName(shopRegisterInput.getShopName())
+
+
+                        .shopType(shopType)  //이 부분 수정할 확률높음
+
 
                         .reviewCount(0L)
                         .averageShopRating(0.0)

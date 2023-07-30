@@ -25,7 +25,7 @@ public class Review {
     private String content;
 
     @Column
-    @Enumerated(EnumType.ORDINAL)
+    @Enumerated(EnumType.STRING)
     private ShopRating star;
 
 

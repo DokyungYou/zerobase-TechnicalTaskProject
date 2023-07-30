@@ -30,7 +30,7 @@ public class JWTUtils {
         // Date 클래스로는 작업하기 어려운 부분이 있어서 LocalDateTime을 이용하고 이 값을 Date로 넘기기(방법은 여러가지가 있음)
         // 유효기간은 1시간으로 잡음
         // 토큰 값은 수정해야할듯
-        LocalDateTime expiredDateTime = LocalDateTime.now().plusHours(1);
+        LocalDateTime expiredDateTime = LocalDateTime.now().plusMonths(1);
         Date expiredDate = java.sql.Timestamp.valueOf(expiredDateTime);
 
 
@@ -52,9 +52,9 @@ public class JWTUtils {
         }
 
         // Date 클래스로는 작업하기 어려운 부분이 있어서 LocalDateTime을 이용하고 이 값을 Date로 넘기기(방법은 여러가지가 있음)
-        // 유효기간은 1시간으로 잡음
+        // 유효기간은 1시간으로 잡을건데 (만드는동안은 불편하니까 1달로 잡자)
         // 토큰 값은 수정해야할듯
-        LocalDateTime expiredDateTime = LocalDateTime.now().plusHours(1);
+        LocalDateTime expiredDateTime = LocalDateTime.now().plusMonths(1);
         Date expiredDate = java.sql.Timestamp.valueOf(expiredDateTime);
 
 
