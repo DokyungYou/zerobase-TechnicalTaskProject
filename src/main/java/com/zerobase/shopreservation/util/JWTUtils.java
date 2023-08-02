@@ -37,7 +37,7 @@ public class JWTUtils {
         String token =  JWT.create()
                 .withExpiresAt(expiredDate)
                 .withClaim("business_registration_number", user.getBusinessRegistrationNumber())
-                .withSubject(user.getPartnerName())
+                .withSubject(user.getUserId())
                 .withIssuer(user.getEmail())
                 .sign(Algorithm.HMAC512("zerobase".getBytes()));
 
@@ -60,8 +60,8 @@ public class JWTUtils {
 
         String token =  JWT.create()
                 .withExpiresAt(expiredDate)
-                .withClaim("customer_id", user.getCustomerId())
-                .withSubject(user.getCustomerName())
+                .withClaim("customer_id", user.getUserId())
+                .withSubject(user.getUserName())
                 .withIssuer(user.getEmail())
                 .sign(Algorithm.HMAC512("zerobase".getBytes()));
 

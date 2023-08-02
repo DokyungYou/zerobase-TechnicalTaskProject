@@ -17,5 +17,11 @@ public interface UserPartnerRepository extends JpaRepository<UserPartner,Long> {
 
     Optional<UserPartner> findByBusinessRegistrationNumber(String businessRegistrationNumber);
 
+    boolean existsByBusinessRegistrationNumber(String businessRegistrationNumber);
+    boolean existsByEmail(String email);
+    boolean existsByUserId(String userId);
+    boolean existsByPhoneNumber(String phoneNumber);
+
+
 
 }
