@@ -1,6 +1,6 @@
 package com.zerobase.shopreservation.entity;
 
-import com.zerobase.shopreservation.type.ReservationStatus;
+import com.zerobase.shopreservation.dto.type.ReservationStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -36,17 +36,13 @@ public class Reservation {
     @Column
     private String reservationContents;
 
+
     @Column
     private String phoneNumber;
 
 
     @Column
     private LocalDateTime reservationDateTime;
-
-
-    // 이건 없어질지도
-    @Column
-    private boolean arrivedReservationTime;
 
 
     @Column
@@ -58,9 +54,9 @@ public class Reservation {
     @Column
     private LocalDateTime regDate;
 
+    // 승인 및 거절한 시점
     @Column
     private LocalDateTime statusUpdate;
-
 
 
 }

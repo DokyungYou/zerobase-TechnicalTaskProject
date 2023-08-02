@@ -1,10 +1,8 @@
 package com.zerobase.shopreservation.repository;
 
-import com.zerobase.shopreservation.dto.Coordinate;
 import com.zerobase.shopreservation.dto.GetShopList;
 import com.zerobase.shopreservation.dto.input.GetShopListInput;
-import com.zerobase.shopreservation.entity.Shop;
-import com.zerobase.shopreservation.type.ShopType;
+import com.zerobase.shopreservation.dto.type.ShopType;
 import lombok.RequiredArgsConstructor;
 import org.qlrm.mapper.JpaResultMapper;
 import org.springframework.stereotype.Repository;
@@ -18,10 +16,9 @@ import java.util.List;
 public class ShopCustomRepository {
 
     private final EntityManager entityManager;
-    private final ShopRepository shopRepository;
 
     // 필요한 컬럼)
-    //pk, 가게이름, 평균별점,총 리뷰수, 가게유형, 예약가능여부
+    //pk, 가게이름, 평균별점,총 리뷰수, 가게유형, 예약가능여부, 거리
     public List<GetShopList> getShopList(GetShopListInput getShopListInput) {
 
         String bookable = "";
@@ -57,12 +54,14 @@ public class ShopCustomRepository {
         List<ShopType> shopTypes = getShopListInput.getShopTypes();
         StringBuilder sb = new StringBuilder();
 
+        // 타입 선택을 하지 않았을때
         if (shopTypes == null || shopTypes.size() == 0) {
                 sb.append("like ");
                 sb.append("'%'");
                 return sb.toString();
             }
 
+        // 한가지 타입만 선택했을때
         if (shopTypes.size() == 1) {
             sb.append("like ");
             sb.append("'%");
@@ -71,7 +70,7 @@ public class ShopCustomRepository {
             return sb.toString();
         }
 
-
+        // 두가지 이상의 타입 선택했을때
             sb.append("REGEXP '");
             for (int i = 0; i <= shopTypes.size() - 1; i++) {
                 if (i == shopTypes.size() - 1) {
@@ -87,6 +86,7 @@ public class ShopCustomRepository {
         
 
     String getDistanceColum(GetShopListInput getShopListInput){
+
         if(getShopListInput.getCoordinate() == null){
             return "(0) AS distance";
         }

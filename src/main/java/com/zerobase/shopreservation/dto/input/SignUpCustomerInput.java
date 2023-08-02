@@ -38,6 +38,7 @@ public class SignUpCustomerInput {
     private String phoneNumber;
 
 
+    // 닉네임이 null값으로 들어가면 기본값으로 user000~ 이런식으로 넣어주자
     @Pattern(regexp = "^[ㄱ-ㅎ가-힣a-z0-9-_]{2,10}$", message = "닉네임은 특수문자를 제외한 2~10자리여야 합니다.")
     private String nickname;
 }

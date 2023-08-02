@@ -1,6 +1,6 @@
 package com.zerobase.shopreservation.dto.input;
 
-import com.zerobase.shopreservation.type.ShopRating;
+import com.zerobase.shopreservation.dto.type.ShopRating;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

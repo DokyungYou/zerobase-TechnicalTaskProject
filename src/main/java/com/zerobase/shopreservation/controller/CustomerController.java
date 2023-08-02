@@ -7,6 +7,8 @@ import com.zerobase.shopreservation.common.ResponseMessage;
 import com.zerobase.shopreservation.common.ServiceResult;
 import com.zerobase.shopreservation.dto.GetShopList;
 import com.zerobase.shopreservation.dto.input.*;
+import com.zerobase.shopreservation.entity.Reservation;
+import com.zerobase.shopreservation.entity.Review;
 import com.zerobase.shopreservation.entity.Shop;
 import com.zerobase.shopreservation.service.CustomerService;
 import com.zerobase.shopreservation.util.JWTUtils;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -38,11 +41,7 @@ public class CustomerController {
         }
 
         ServiceResult result = customerService.signUp(signUpCustomerInput);
-        if(result.isFail()){
-            return ResponseResult.fail(result.getMessage());
-        }
-
-        return ResponseEntity.ok().build();
+        return ResponseResult.result(result);
     }
 
 
@@ -69,10 +68,30 @@ public class CustomerController {
 
         List<GetShopList> shopList = customerService.getShopList(getShopListInput);
 
-        return ResponseEntity.ok().body(shopList);
+        return ResponseResult.success(shopList);
     }
 
 
+    // 특정상점 detail 정보 가져오기
+    @GetMapping("api/customer/{shopId}")
+    public ResponseEntity<?> getShopDetail(@PathVariable Long shopId){
+
+        Shop shop = customerService.getShopDetail(shopId);
+        return ResponseResult.success(shop);
+    }
+    
+    
+    // 특정 상점 리뷰목록 가져오기
+    @GetMapping("api/customer/{shopId}/review")
+    public ResponseEntity<?> getShopReviews(@PathVariable Long shopId){
+
+        List<Review> shopReviews = customerService.getShopReviews(shopId);
+
+        return ResponseResult.success(shopReviews);
+    }
+    
+    
+    
     
     //예약하기
     @PostMapping("/api/customer/reservation")
@@ -99,6 +118,22 @@ public class CustomerController {
         return ResponseResult.result(result);
     }
 
+    // 본인이 예약한 목록 가져오기
+    @GetMapping("/api/customer/reservation")
+    public ResponseEntity<?> getMyReservationList(@RequestHeader("C-TOKEN") String token){
+        String email = "";
+        try{
+            email = JWTUtils.getIssuer(token);
+        }catch (JWTDecodeException e){
+            return new ResponseEntity<>("토큰 정보가 정확하지 않습니다!", HttpStatus.BAD_REQUEST);
+        }
+
+        List<Reservation> reservationList = customerService.getMyReservationList(email);
+
+        return ResponseResult.success(reservationList);
+    }
+    
+    
 
     // 키오스크 도착확인
     @PatchMapping("/api/customer/kiosk/{shopId}")
@@ -143,5 +178,22 @@ public class CustomerController {
         return ResponseResult.result(result);
     }
 
+    // 본인이 작성했던 리뷰 목록 가져오기
+    @GetMapping("/api/customer/reviewed")
+    public ResponseEntity<?> getMyReviewList(@RequestHeader("C-TOKEN") String token){
+
+        String email = "";
+        try{
+            email = JWTUtils.getIssuer(token);
+        }catch (JWTDecodeException e){
+            return new ResponseEntity<>("토큰 정보가 정확하지 않습니다!", HttpStatus.BAD_REQUEST);
+        }
+
+        List<Review> myReviewList = customerService.getMyReviewList(email);
+
+        return ResponseResult.success(myReviewList);
+    }
+
+    
 
 }

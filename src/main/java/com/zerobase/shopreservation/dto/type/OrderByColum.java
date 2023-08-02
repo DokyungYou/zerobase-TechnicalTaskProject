@@ -1,4 +1,4 @@
-package com.zerobase.shopreservation.type;
+package com.zerobase.shopreservation.dto.type;
 
 public enum OrderByColum {
 

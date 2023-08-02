@@ -1,8 +1,8 @@
 package com.zerobase.shopreservation.dto.input;
 
 import com.zerobase.shopreservation.dto.Coordinate;
-import com.zerobase.shopreservation.type.OrderByColum;
-import com.zerobase.shopreservation.type.ShopType;
+import com.zerobase.shopreservation.dto.type.OrderByColum;
+import com.zerobase.shopreservation.dto.type.ShopType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

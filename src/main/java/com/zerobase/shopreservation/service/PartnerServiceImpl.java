@@ -3,9 +3,9 @@ package com.zerobase.shopreservation.service;
 import com.zerobase.shopreservation.common.ResponseMessage;
 import com.zerobase.shopreservation.common.ServiceResult;
 import com.zerobase.shopreservation.common.exception.BizException;
-import com.zerobase.shopreservation.dto.input.ResponseReservationInput;
+import com.zerobase.shopreservation.dto.input.partner.ResponseReservationInput;
 import com.zerobase.shopreservation.dto.input.partner.LoginPartnerInput;
-import com.zerobase.shopreservation.dto.input.partner.ShopRegisterInput;
+import com.zerobase.shopreservation.dto.input.partner.ShopInput;
 import com.zerobase.shopreservation.dto.input.partner.SignUpPartnerInput;
 import com.zerobase.shopreservation.entity.Reservation;
 import com.zerobase.shopreservation.entity.Shop;
@@ -13,9 +13,8 @@ import com.zerobase.shopreservation.entity.UserPartner;
 import com.zerobase.shopreservation.repository.ReservationRepository;
 import com.zerobase.shopreservation.repository.ShopRepository;
 import com.zerobase.shopreservation.repository.UserPartnerRepository;
-//import com.zerobase.shopreservation.util.PasswordUtils;
-import com.zerobase.shopreservation.type.ReservationStatus;
-import com.zerobase.shopreservation.type.ShopType;
+
+import com.zerobase.shopreservation.dto.type.ReservationStatus;
 import com.zerobase.shopreservation.util.JWTUtils;
 import com.zerobase.shopreservation.util.PasswordUtils;
 import lombok.RequiredArgsConstructor;
@@ -39,42 +38,21 @@ public class PartnerServiceImpl implements PartnerService{
     public ServiceResult signUp(SignUpPartnerInput signUpPartnerInput) {
 
         //사업자등록번호, 아이디, 이메일, 연락처 중복체크
-        Optional<UserPartner> byBusinessRegistrationNumber
-                = userPartnerRepository.findByBusinessRegistrationNumber(signUpPartnerInput.getBusinessRegistrationNumber());
-        if(byBusinessRegistrationNumber.isPresent()){
+        if(userPartnerRepository.existsByBusinessRegistrationNumber(signUpPartnerInput.getBusinessRegistrationNumber())){
             return ServiceResult.fail("입력하신 사업자등록번호는 이미 사용중입니다.");
         }
-
-        Optional<UserPartner> byEmail = userPartnerRepository.findByEmail(signUpPartnerInput.getEmail());
-        if(byEmail.isPresent()){
+        if(userPartnerRepository.existsByEmail(signUpPartnerInput.getEmail())){
             return ServiceResult.fail("입력하신 이메일은 이미 사용중입니다.");
         }
-        Optional<UserPartner> byPartnerId = userPartnerRepository.findByPartnerId(signUpPartnerInput.getPartnerId());
-        if(byPartnerId.isPresent()){
+        if(userPartnerRepository.existsByUserId(signUpPartnerInput.getPartnerId())){
             return ServiceResult.fail("입력하신 아이디는 이미 사용중입니다.");
         }
-
-
-        Optional<UserPartner> byPhoneNumber = userPartnerRepository.findByPhoneNumber(signUpPartnerInput.getPhoneNumber());
-        if(byPhoneNumber.isPresent()){
+        if(userPartnerRepository.existsByPhoneNumber(signUpPartnerInput.getPhoneNumber())){
             return ServiceResult.fail("입력하신 휴대전화번호는 이미 사용중입니다.");
         }
 
 
-        //입력한 비밀번호 암호화
-        String encryptPassword = PasswordUtils.getEncryptPassword(signUpPartnerInput.getPassword());
-
-        
-        UserPartner partner = UserPartner.builder()
-                    .businessRegistrationNumber(signUpPartnerInput.getBusinessRegistrationNumber())
-                    .partnerName(signUpPartnerInput.getName())
-                    .phoneNumber(signUpPartnerInput.getPhoneNumber())
-                    .email(signUpPartnerInput.getEmail())
-                    .partnerId(signUpPartnerInput.getPartnerId())
-                    .password(encryptPassword)
-                    .signUpDate(LocalDateTime.now())
-                    .build();
-
+        UserPartner partner = UserPartner.createUserPartner(signUpPartnerInput);
         userPartnerRepository.save(partner);
         return ServiceResult.success();
     }
@@ -83,8 +61,9 @@ public class PartnerServiceImpl implements PartnerService{
     //파트너 로그인 (1시간짜리 토큰 생성)
     @Override
     public ResponseMessage login(LoginPartnerInput loginPartnerInput) {
+
         Optional<UserPartner> byBusinessRegistrationNumber
-                = userPartnerRepository.findByBusinessRegistrationNumber(loginPartnerInput.getBusinessRegistrationNumber());
+                = userPartnerRepository.findByPartnerId(loginPartnerInput.getPartnerId());
 
         if(!byBusinessRegistrationNumber.isPresent()){
             return ResponseMessage.fail("로그인에 실패했습니다.");
@@ -105,11 +84,8 @@ public class PartnerServiceImpl implements PartnerService{
 
     // 상점 신규 등록
     @Override
-    public ServiceResult registerShop(ShopRegisterInput shopRegisterInput, String email) {
+    public ServiceResult registerShop(ShopInput shopInput, String email) {
 
-        System.out.println(email);
-
-        //같은데 왜 자꾸 안되냐
         Optional<UserPartner> optionalUserPartner
                 = userPartnerRepository.findByEmail(email);
         if(!optionalUserPartner.isPresent()){
@@ -117,68 +93,37 @@ public class PartnerServiceImpl implements PartnerService{
         }
 
         UserPartner partner = optionalUserPartner.get();
-        
-//        // 열거형으로 들여온거를 , ,의 형태의 String으로 넣고 , 나중에 특정 가게타입의 문자열 포함한 애들로 검색가능하게
-//        StringBuilder sb = new StringBuilder();
-//        sb.append(shopRegisterInput.getShopType()[0]);
-//        for (int i = 1; i < shopRegisterInput.getShopType(); i++) {
-//            sb.append(shopRegisterInput.getShopType()[i]);
-//        }
 
-
-
-        // 가게 타입 여러개인거 받음 (NUll 예외 확률 높으니 수정하자)
-        // 근데 List타입의 데이터를 유효성 검사하기가 애매해서 좀.. 흠...
-        StringBuilder sb = new StringBuilder();
-        for(ShopType shopType : shopRegisterInput.getShopTypes()){
-            sb.append(shopType.getTypeName()+ ",");
-        }
-        String shopType = sb.toString();
-
-
-
-        //이거 Shop 클래스의 메소드로 따로 뺼까...
-        // shopTypes 받아온거 문자열로 나열해서 넣는 메소드도 따로 빼자
-        Shop shop = Shop.builder()
-                        .takeOut(shopRegisterInput.isTakeOut())
-                        .wifi(shopRegisterInput.isWifi())
-                        .parking(shopRegisterInput.isParking())
-                        .facilitiesForDisabled(shopRegisterInput.isFacilitiesForDisabled())
-                        .seats(shopRegisterInput.getSeats())
-                        .bookable(shopRegisterInput.isBookable())
-                        .reservationType(shopRegisterInput.getReservationType())
-                        .operatingHours(shopRegisterInput.getOperatingHours())
-                        .dayOff(shopRegisterInput.getDayOff())
-                        .shopAddress(shopRegisterInput.getShopAddress())
-
-
-                // 일단 임시로 주석 처리
-//                        .longitude(shopRegisterInput.getCoordinate().getLongitude())
-//                        .latitude(shopRegisterInput.getCoordinate().getLatitude())
-
-                        .contactNumber(shopRegisterInput.getContactNumber())
-                        .shopIntroduction(shopRegisterInput.getShopIntroduction())
-
-                        .shopName(shopRegisterInput.getShopName())
-
-
-                        .shopType(shopType)  //이 부분 수정할 확률높음
-
-
-                        .reviewCount(0L)
-                        .averageShopRating(0.0)
-
-
-                        .businessRegistrationNumber(partner.getBusinessRegistrationNumber())
-                        .regDate(LocalDateTime.now())
-                        .userPartner(partner)
-                        .build();
-
-        shopRepository.save(shop);
+        shopRepository.save(Shop.registerShop(shopInput,partner));
         return ServiceResult.success();
     }
 
 
+
+
+    // 엔티티로 받아야하나 싶기도하고
+    @Override
+    public ServiceResult updateShop(Long shopId, String email, ShopInput updateShopInput) {
+
+        Optional<UserPartner> optionalUserPartner
+                = userPartnerRepository.findByEmail(email);
+        if(!optionalUserPartner.isPresent()){
+            return ServiceResult.fail("해당 이메일없.");
+        }
+
+        UserPartner partner = optionalUserPartner.get();
+
+        Optional<Shop> optionalShop = shopRepository.findByUserPartnerAndId(partner, shopId);
+        if(optionalShop.isEmpty()){
+            return ServiceResult.fail("가게 정보가 존재하지 않습니다.");
+        }
+
+        Shop shop = optionalShop.get();
+        Shop.updateShop(updateShopInput, shop);
+        shopRepository.save(shop);
+        return ServiceResult.success();
+
+    }
 
     // 전체 예약목록 확인(날짜순 정렬)
     @Override
@@ -189,20 +134,19 @@ public class PartnerServiceImpl implements PartnerService{
         // 일치하면 그 shop 객체가 조인돼있는 예약정보 불러오기
         Optional<Shop> optionalShop = shopRepository.findById(shopId);
         if(optionalShop.isEmpty()){
-            //여기서는 예외를 던져야함, 리턴타입이 List 라서
             throw new BizException("존재하지 않는 상점입니다.");
         }
 
         Shop shop = optionalShop.get();
        if(!shop.getUserPartner().getEmail().equals(email)){
-           throw new BizException("니 가게 아님.");
+           throw new BizException("파트너의 상점이 아닙니다.");
        }
 
        return reservationRepository.findByShopOrderByReservationDateTime(shop);
     }
 
 
-    //예약 승인 및 거절
+    //예약 상태 변경 (거절, 승인, 취소, 도착)
     @Override
     public ServiceResult responseReservation(Long shopId,String email, ResponseReservationInput responseReservationInput) {
         Optional<Shop> optionalShop = shopRepository.findById(shopId);
@@ -212,15 +156,17 @@ public class PartnerServiceImpl implements PartnerService{
 
         Shop shop = optionalShop.get();
         if(!shop.getUserPartner().getEmail().equals(email)){
-            return ServiceResult.fail("니 가게 아님.");
+            return ServiceResult.fail("해당 가게의 파트너가 아닙니다.");
         }
 
-        //상점 , 예약 아이디, 예약 상태
+        // 지정한 가게의 특정 예약데이터 가져오기
         Optional<Reservation> optionalReservation = reservationRepository.findByIdAndShop(responseReservationInput.getReservationId(), shop);
         if(optionalReservation.isEmpty()){
             return ServiceResult.fail("존재하지 않는 예약입니다.");
         }
 
+
+        // 인풋에 이 데이터 notnull 붙여놨긴했는데, 되는지 안되는지 몰라서 일단 넣어놓은 되면 이거는 삭제해도 됨
         if(responseReservationInput.getReservationStatus() == null){
             responseReservationInput.setReservationStatus(ReservationStatus.WAITING);
         }
@@ -228,7 +174,6 @@ public class PartnerServiceImpl implements PartnerService{
 
         Reservation reservation = optionalReservation.get();
         reservation.setReservationStatus(responseReservationInput.getReservationStatus());
-
 
         reservationRepository.save(reservation);
         return ServiceResult.success();

@@ -4,6 +4,8 @@ import com.zerobase.shopreservation.common.ResponseMessage;
 import com.zerobase.shopreservation.common.ServiceResult;
 import com.zerobase.shopreservation.dto.GetShopList;
 import com.zerobase.shopreservation.dto.input.*;
+import com.zerobase.shopreservation.entity.Reservation;
+import com.zerobase.shopreservation.entity.Review;
 import com.zerobase.shopreservation.entity.Shop;
 
 import java.util.List;
@@ -21,4 +23,12 @@ public interface CustomerService {
     List<GetShopList> getShopList(GetShopListInput getShopListInput);
 
     ServiceResult arriveCheck(long shopId,ArriveCheckInput arriveCheckInput);
+
+    Shop getShopDetail(Long shopId);
+
+    List<Reservation> getMyReservationList(String email);
+
+    List<Review> getMyReviewList(String email);
+
+    List<Review> getShopReviews(Long shopId);
 }

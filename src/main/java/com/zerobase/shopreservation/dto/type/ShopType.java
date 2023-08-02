@@ -1,4 +1,4 @@
-package com.zerobase.shopreservation.type;
+package com.zerobase.shopreservation.dto.type;
 
 public enum  ShopType {
 
@@ -9,7 +9,7 @@ public enum  ShopType {
     THAILAND_FOOD("태국음식"),
     ETC("등등?");
 
-    private String typeName;
+    private final String typeName;
 
 
     ShopType(String typeName){

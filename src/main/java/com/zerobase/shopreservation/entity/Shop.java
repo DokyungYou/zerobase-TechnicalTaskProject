@@ -1,6 +1,9 @@
 package com.zerobase.shopreservation.entity;
 
 
+import com.zerobase.shopreservation.dto.input.partner.ShopInput;
+import com.zerobase.shopreservation.dto.type.ShopRating;
+import com.zerobase.shopreservation.dto.type.ShopType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,6 +12,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Data
@@ -28,11 +32,21 @@ public class Shop {
     @Column(nullable = false)
     private String shopName;
 
-    @Column
-    private String shopType;
 
-//    @Enumerated(EnumType.STRING)  //걍 List<String>으로 받을까 생각중
-//    ShopType type;
+
+
+    
+    //이거 지우기 (임시로 아직 냅둠)
+//    @Column
+//    private String shopType;
+
+
+    @Enumerated
+    @ElementCollection
+    private List<ShopType> shopTypes;
+
+
+
 
     @Column
     private String shopIntroduction;
@@ -121,6 +135,91 @@ public class Shop {
 
     @Column
     private String businessRegistrationNumber;
+
+
+
+    // 상점 신규 등록
+    public static Shop registerShop(ShopInput shopInput, UserPartner partner){
+        return Shop.builder()
+                    .takeOut(shopInput.isTakeOut())
+                    .wifi(shopInput.isWifi())
+                    .parking(shopInput.isParking())
+                    .facilitiesForDisabled(shopInput.isFacilitiesForDisabled())
+                    .seats(shopInput.getSeats())
+                    .bookable(shopInput.isBookable())
+                    .reservationType(shopInput.getReservationType())
+                    .operatingHours(shopInput.getOperatingHours())
+                    .dayOff(shopInput.getDayOff())
+                    .shopAddress(shopInput.getShopAddress())
+
+
+                    .longitude(shopInput.getCoordinate().getLongitude())
+                    .latitude(shopInput.getCoordinate().getLatitude())
+
+                    .contactNumber(shopInput.getContactNumber())
+                    .shopIntroduction(shopInput.getShopIntroduction())
+
+                    .shopName(shopInput.getShopName())
+
+
+                    .shopTypes(shopInput.getShopTypes())
+
+
+                    .reviewCount(0L)
+                    .averageShopRating(0.0)
+
+
+                    .businessRegistrationNumber(partner.getBusinessRegistrationNumber())
+                    .regDate(LocalDateTime.now())
+                    .userPartner(partner)
+                    .build();
+    }
+
+
+    public static Shop updateShop(ShopInput shopInput, Shop shop){
+
+        shop.setTakeOut(shopInput.isTakeOut());
+        shop.setWifi(shopInput.isWifi());
+        shop.setParking(shopInput.isParking());
+        shop.setFacilitiesForDisabled(shopInput.isFacilitiesForDisabled());
+        shop.setSeats(shopInput.getSeats());
+        shop.setBookable(shopInput.isBookable());
+        shop.setReservationType(shopInput.getReservationType());
+        shop.setOperatingHours(shopInput.getOperatingHours());
+        shop.setDayOff(shopInput.getDayOff());
+        shop.setShopAddress(shopInput.getShopAddress());
+
+        shop.setLongitude(shopInput.getCoordinate().getLongitude());
+        shop.setLatitude(shopInput.getCoordinate().getLatitude());
+
+        shop.setContactNumber(shopInput.getContactNumber());
+        shop.setShopIntroduction(shopInput.getShopIntroduction());
+
+        shop.setShopName(shopInput.getShopName());
+        shop.setShopTypes(shopInput.getShopTypes());
+
+        shop.setBusinessRegistrationNumber(shopInput.getBusinessRegistrationNumber());
+        shop.setUpdateDate(LocalDateTime.now());
+
+       // shop.setUserPartner(partner);
+
+        return shop;
+
+    }
+
+
+    public void updateShopRating(Shop shop, ShopRating shopRating){
+
+        long beforeReviewCount = shop.getReviewCount();
+        long newReviewCount = beforeReviewCount + 1;
+
+        double beforeRating = shop.getAverageShopRating();
+        double newRating = ((beforeRating * beforeReviewCount) + shopRating.getValue()) / newReviewCount;
+
+        shop.setReviewCount(newReviewCount);
+        shop.setAverageShopRating(newRating);
+
+    }
 
 
 }

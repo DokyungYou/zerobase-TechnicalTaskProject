@@ -1,7 +1,7 @@
 package com.zerobase.shopreservation.dto.input.partner;
 
 import com.zerobase.shopreservation.dto.Coordinate;
-import com.zerobase.shopreservation.type.ShopType;
+import com.zerobase.shopreservation.dto.type.ShopType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,14 +9,14 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ShopRegisterInput {
+public class ShopInput {
+
 
     @NotBlank(message = "상점이름은 필수입력값입니다.")
     private String shopName;
@@ -25,9 +25,8 @@ public class ShopRegisterInput {
     private String contactNumber;
 
     
-    //수정할수도 있음
-    // List 타입 열거형클래스 받고, 그걸 나중에 문자열로 나열해서 문자열로 저장하게할까..
-//    private String shopType;
+
+
     @NotNull(message = "가게타입은 필수입력값입니다.")
     private List<ShopType> shopTypes;
 
@@ -59,6 +58,10 @@ public class ShopRegisterInput {
     private boolean wifi;
     private boolean parking;
     private boolean facilitiesForDisabled;
+
+    
+    // 로그인한 계정의 사업자등록번호와 일치하는지 확인
+    private String businessRegistrationNumber;
 
 
 }

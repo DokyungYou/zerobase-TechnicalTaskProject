@@ -11,20 +11,19 @@ import com.zerobase.shopreservation.entity.Shop;
 import com.zerobase.shopreservation.entity.UserCustomer;
 
 import com.zerobase.shopreservation.repository.*;
-import com.zerobase.shopreservation.type.OrderByColum;
-import com.zerobase.shopreservation.type.ReservationStatus;
+import com.zerobase.shopreservation.dto.type.OrderByColum;
+import com.zerobase.shopreservation.dto.type.ReservationStatus;
 import com.zerobase.shopreservation.util.JWTUtils;
 import com.zerobase.shopreservation.util.PasswordUtils;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
@@ -43,43 +42,28 @@ public class CustomerServiceImpl implements CustomerService{
     // 이용자 회원가입
     @Override
     public ServiceResult signUp(SignUpCustomerInput signUpCustomerInput) {
+
         //아이디, 이메일, 연락처 중복체크
-        Optional<UserCustomer> byEmail = userCustomerRepository.findByEmail(signUpCustomerInput.getEmail());
-        if(byEmail.isPresent()){
+        if(userCustomerRepository.existsByEmail(signUpCustomerInput.getEmail())){
             return ServiceResult.fail("입력하신 이메일은 이미 사용중입니다.");
         }
-        Optional<UserCustomer> byPartnerId = userCustomerRepository.findByCustomerId(signUpCustomerInput.getCustomerId());
-        if(byPartnerId.isPresent()){
+        if(userCustomerRepository.existsByUserId(signUpCustomerInput.getCustomerId())){
             return ServiceResult.fail("입력하신 아이디는 이미 사용중입니다.");
         }
-
-
-        Optional<UserCustomer> byPhoneNumber = userCustomerRepository.findByPhoneNumber(signUpCustomerInput.getPhoneNumber());
-        if(byPhoneNumber.isPresent()){
+       if(userCustomerRepository.existsByPhoneNumber(signUpCustomerInput.getPhoneNumber())) {
             return ServiceResult.fail("입력하신 휴대전화번호는 이미 사용중입니다.");
         }
 
-        Optional<UserCustomer> byNickName = userCustomerRepository.findByNickName(signUpCustomerInput.getNickname());
-        if(byNickName.isPresent()){
+
+        if(signUpCustomerInput.getNickname() == null){
+            signUpCustomerInput.setNickname("customer" + userCustomerRepository.countAll());
+        }
+        if(userCustomerRepository.existsByNickName(signUpCustomerInput.getNickname())){
             return ServiceResult.fail("입력하신 닉네임은 이미 사용중입니다.");
         }
 
 
-        //입력한 비밀번호 암호화
-        String encryptPassword = PasswordUtils.getEncryptPassword(signUpCustomerInput.getPassword());
-
-
-
-        UserCustomer customer = UserCustomer.builder()
-                            .customerName(signUpCustomerInput.getName())
-                            .phoneNumber(signUpCustomerInput.getPhoneNumber())
-                            .email(signUpCustomerInput.getEmail())
-                            .customerId(signUpCustomerInput.getCustomerId())
-                            .password(encryptPassword)
-                            .nickName(signUpCustomerInput.getNickname())
-                            .signUpDate(LocalDateTime.now())
-                            .build();
-
+        UserCustomer customer = UserCustomer.createUserCustomer(signUpCustomerInput);
         userCustomerRepository.save(customer);
         return ServiceResult.success();
     }
@@ -92,9 +76,7 @@ public class CustomerServiceImpl implements CustomerService{
         if(!optionalCustomer.isPresent()){
             return ResponseMessage.fail("로그인에 실패했습니다!");
         }
-
         UserCustomer userCustomer = optionalCustomer.get();
-
 
         if(!PasswordUtils.equalPassword(loginCustomerInput.getPassword(),userCustomer.getPassword())){
             return ResponseMessage.fail("로그인에 실패했습니다!");
@@ -106,9 +88,8 @@ public class CustomerServiceImpl implements CustomerService{
 
 
 
-    // 갑자기 생각하면 할수록 복잡해는데..?
+
     // 상점목록 가져오기
-    // 단순히 상점들 조회하는건데도 로그인(토큰)이 꼭 필요하게 해야할까? 좀 더 고민해보자
     @Override
     public List<GetShopList> getShopList(GetShopListInput getShopListInput) {
 
@@ -118,11 +99,11 @@ public class CustomerServiceImpl implements CustomerService{
                 throw new BizException("거리순 정렬은 위치정보가 입력되어야 적용할 수 있습니다.");
             }
             if(getShopListInput.getMaxDistance()!= null){
-                throw new BizException("검색반경은 위치정보가 입력되어야 적용할 수 있습니다.");
+                throw new BizException("거리정보는 위치정보가 입력되어야 적용할 수 있습니다.");
             }
         }
 
-        // 위치 정보는 들어왔으나 검색반경을 지정해주지 않을때는 기본값으로 초기화
+        // 위치 정보는 들어왔으나 검색반경을 지정해주지 않을때는 기본값(3km)으로 초기화
         if(getShopListInput.getMaxDistance() == null){
             getShopListInput.setMaxDistance(3.0);
         }
@@ -135,10 +116,27 @@ public class CustomerServiceImpl implements CustomerService{
     }
 
 
-    // 핸들러 여기에 넣어도 안 돌아가네?
-    @ExceptionHandler(BizException.class)
-    public ResponseEntity<?> handlerBizException(BizException e){
-        return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+    // 특정 상점 상세정보 가져오기
+    @Override
+    public Shop getShopDetail(Long shopId) {
+        Optional<Shop> optionalShop = shopRepository.findById(shopId);
+        if(optionalShop.isEmpty()){
+            throw new BizException("가게 정보가 존재하지 않습니다.");
+        }
+
+        return optionalShop.get();
+    }
+
+
+    // 특정 상점의 리뷰 가져오기
+    @Override
+    public List<Review> getShopReviews(Long shopId) {
+        Optional<Shop> optionalShop = shopRepository.findById(shopId);
+        if(optionalShop.isEmpty()){
+            throw new BizException("가게 정보가 존재하지 않습니다.");
+        }
+        Shop shop = optionalShop.get();
+        return reviewRepository.findByShop(shop);
     }
 
 
@@ -171,20 +169,34 @@ public class CustomerServiceImpl implements CustomerService{
             LocalDateTime localDateTime = LocalDateTime.parse(dateString,formatter);
 
 
-            Reservation reservation = Reservation.builder()
-                            .shop(shop)
-                            .userCustomer(userCustomer)
-                            .reservationContents(reservationShopInput.getReservationContents())
-                            .reservationDateTime(localDateTime)
-                            .phoneNumber(userCustomer.getPhoneNumber())
-                            .regDate(LocalDateTime.now())
-                            .reservationStatus(ReservationStatus.WAITING)
-                            .build();
+            Reservation reservation
+                    = Reservation.builder()
+                                .shop(shop)
+                                .userCustomer(userCustomer)
+                                .reservationContents(reservationShopInput.getReservationContents())
+                                .reservationDateTime(localDateTime)
+                                .phoneNumber(userCustomer.getPhoneNumber())
+                                .regDate(LocalDateTime.now())
+                                .reservationStatus(ReservationStatus.WAITING)
+                                .build();
 
 
             reservationRepository.save(reservation);
             return ServiceResult.success();
             
+    }
+    
+    //내가 예약한 목록 가져오기
+    @Override
+    public List<Reservation> getMyReservationList(String email) {
+        //이용자
+        Optional<UserCustomer> optionalCustomer = userCustomerRepository.findByEmail(email);
+        if(optionalCustomer.isEmpty()){
+            throw new BizException("존재하지 않는 이용자입니다.");
+        }
+        UserCustomer userCustomer = optionalCustomer.get();
+
+        return reservationRepository.findByUserCustomer(userCustomer);
     }
 
 
@@ -207,27 +219,23 @@ public class CustomerServiceImpl implements CustomerService{
 
         LocalDateTime currentTime = LocalDateTime.now();
 
-        // 키오스크 체크는 예약시간 10분전 까지만 가능 ( 그 후에는 가게주인과 협의 -> 가게주인이 직접 체크)
+        // 키오스크 체크는 예약시간 10분전 까지만 가능 ( 그 외의 상황은 가게주인과 협의 -> 가게주인이 직접 체크)
         if(currentTime.isAfter(reservation.getReservationDateTime().minusMinutes(10))){
-            return ServiceResult.fail("일찍 좀 다녀라");
-        };
-
-        if(currentTime.isBefore(reservation.getReservationDateTime().minusMinutes(30))){
-            return ServiceResult.fail("너무 일찍왔다 ");
+            return ServiceResult.fail("도착체크 시간이 지났습니다. (매장직원에게 문의해주세요)");
         }
 
-        reservation.setArrivedReservationTime(true);
+        if(currentTime.isBefore(reservation.getReservationDateTime().minusMinutes(30))){
+            return ServiceResult.fail("아직 도착체크 가능한 시간이 아닙니다. (매장직원에게 문의해주세요)");
+        }
+
+        reservation.setReservationStatus(ReservationStatus.CARRIED_OUT);
         reservationRepository.save(reservation);
-        // 리뷰를 쓸 수 있는 권한(3일짜리 토큰 주기)
-        // 도착했다고 바로 리뷰 쓸 수 있게 하지말고
-        // 예약 시간보다 한시간 후에 적을 수 있게 만들자.
-        // 아니다 토큰도 필요 없을듯, true이면서 예약시간 1~2시간 뒤인 시간이면 작성 가능하게 만들기.
+
         return ServiceResult.success();
     }
 
-    // 리뷰 작성
-    // 근데 메소드 하나에 두가지 이상의 역할을 넣으면 안되지않나? 근데 연결되는 역할이라 같이 넣었는데
-    // (예약약속 지켰는지의 여부, 예약날짜의 일주일 이내에만 작성가능 /shop 의 리뷰,점수 갱신 /  /
+
+    // 리뷰 남기기
     @Override
     public ServiceResult reviewShop(Long reservedId, String email, ReviewInput reviewInput) {
         //이용자
@@ -247,11 +255,11 @@ public class CustomerServiceImpl implements CustomerService{
 
         Optional<Reservation> optionalReservation = reservationRepository.findById(reservedId);
         if(optionalReservation.isEmpty()){
-            return ServiceResult.fail("해당 예약내역이 존재하지 않습니다.");
+            return ServiceResult.fail("예약정보가 존재하지 않습니다.");
         }
         Reservation reservation = optionalReservation.get();
 
-        // 예약 아이디로 찾은  예약 내역자체는 존재하는데, 자신의 예약내역이 아니거나 가게가 일치하지 않을때
+        // 예약 아이디로 찾은  예약 자체는 존재하는데, 자신의 예약내역이 아니거나 가게가 일치하지 않을때
         // wrapper 타입 아닌 기본타입으로 바꿨는데도 != 에 주의가 뜨네
         if(reservation.getShop().getId() != reviewInput.getShopId()){
             return ServiceResult.fail("뭐라고 쓰지");
@@ -261,8 +269,13 @@ public class CustomerServiceImpl implements CustomerService{
         }
 
         // 가지고 온 과거 예약 데이터의 상태를 따져야함 (예약약속 지켰는지의 여부, 예약날짜의 3일안에만 작성가능)
-        if(!reservation.isArrivedReservationTime()){
-            return ServiceResult.fail("리뷰를 작성할 수 없습니다.");
+        // 근데 enum타입 을 스택메모리 비교하는 연산자로 써도 되나? (테스트 필요)
+        if(reservation.getReservationStatus() != ReservationStatus.CARRIED_OUT){
+            return ServiceResult.fail("이용한 예약 건의 리뷰만 작성할 수 있습니다.");
+        }
+
+        if(LocalDateTime.now().isBefore(reservation.getReservationDateTime().plusHours(1))){
+            return ServiceResult.fail("아직 리뷰를 작성할 수 없습니다.");
         }
 
         if(LocalDateTime.now().isAfter(reservation.getReservationDateTime().plusDays(3))){
@@ -276,7 +289,10 @@ public class CustomerServiceImpl implements CustomerService{
         // 리뷰를 쓸 자격이 될 때
         Review review = Review.builder()
                                 .content(reviewInput.getContents())
+                                // shop 아이디만 넣어야할지 고민
                                 .shop(shop)
+
+                                // 아이디(Customer pk나 이메일  or 아이디)만 넣을지 UserCustomer 로 넣을지 고민
                                 .userCustomer(userCustomer)
                                 .regDate(LocalDateTime.now())
                                 .star(reviewInput.getRating())
@@ -285,19 +301,24 @@ public class CustomerServiceImpl implements CustomerService{
         reviewRepository.save(review);
 
 
-        // 상점 리뷰수, 점수 갱신 (메소드를 따로 구현할까 생각중)
-        long beforeReviewCount = shop.getReviewCount();
-        long newReviewCount = beforeReviewCount + 1;
-
-        double beforeRating = shop.getAverageShopRating();
-        double newRating = ((beforeRating * beforeReviewCount) + reviewInput.getRating().getValue()) / newReviewCount;
-
-        shop.setReviewCount(newReviewCount);
-        shop.setAverageShopRating(newRating);
-
+        shop.updateShopRating(shop, reviewInput.getRating());
         shopRepository.save(shop); //리뷰수, 평균 별점 갱신
 
         return ServiceResult.success();
     }
 
+
+    // 내가 작성한 리뷰목록 가져오기
+    @Override
+    public List<Review> getMyReviewList(String email) {
+        //이용자
+        Optional<UserCustomer> optionalCustomer = userCustomerRepository.findByEmail(email);
+        if(optionalCustomer.isEmpty()){
+            throw new BizException("존재하지 않는 사용자입니다.");
+        }
+        
+        // 리뷰 컬럼 수정할수도 있음
+        UserCustomer userCustomer = optionalCustomer.get();
+        return reviewRepository.findByUserCustomer(userCustomer);
+    }
 }
