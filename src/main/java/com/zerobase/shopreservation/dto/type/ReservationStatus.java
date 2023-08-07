@@ -4,8 +4,9 @@ public enum ReservationStatus {
     WAITING("대기"),
     APPROVED("승인"),
     REJECTED("거부"),
-    CARRIED_OUT("이행"),
-    CANCELLATION("취소")
+    ARRIVED("도착"),
+    CANCELLATION("취소"),
+    COMPLETED_PAYMENT("결제 완료")
     ;
 
     private final String value;

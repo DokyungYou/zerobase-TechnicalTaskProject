@@ -1,27 +1,32 @@
 package com.zerobase.shopreservation.entity;
 
-import com.zerobase.shopreservation.dto.input.partner.SignUpPartnerInput;
+import com.zerobase.shopreservation.dto.request.partner.SignUpPartnerInput;
 import com.zerobase.shopreservation.util.PasswordUtils;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder
 @DiscriminatorValue("partner")
-public class UserPartner extends User{
+@SuperBuilder
+public class UserPartner extends User {
 
     @Column //10자리 (xxx-xx-xxxxx)
     private String businessRegistrationNumber;
+
+
+//    @OneToMany(mappedBy = "userPartner", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+//    private List<Shop> reservations = new ArrayList<>();
+
 
 
     public static UserPartner createUserPartner(SignUpPartnerInput signUpPartnerInput){
@@ -36,6 +41,7 @@ public class UserPartner extends User{
                             .userId(signUpPartnerInput.getPartnerId())
                             .password(encryptPassword)
                             .signUpDate(LocalDateTime.now())
+
                             .build();
     }
 

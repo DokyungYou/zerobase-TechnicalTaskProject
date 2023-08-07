@@ -1,15 +1,16 @@
 package com.zerobase.shopreservation.entity;
 
-import com.zerobase.shopreservation.dto.input.SignUpCustomerInput;
+import com.zerobase.shopreservation.dto.request.customer.SignUpCustomerInput;
 import com.zerobase.shopreservation.util.PasswordUtils;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
@@ -17,10 +18,14 @@ import java.util.Collection;
 @AllArgsConstructor
 @DiscriminatorValue("customer")
 @SuperBuilder
-public class UserCustomer extends User{
+public class UserCustomer extends User {
 
     @Column
     private String nickName;
+
+    @OneToMany(mappedBy = "userCustomer", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Reservation> reservations = new ArrayList<>();
+
 
 
     public static UserCustomer createUserCustomer(SignUpCustomerInput signUpCustomerInput){
@@ -35,6 +40,7 @@ public class UserCustomer extends User{
                             .password(encryptPassword)
                             .nickName(signUpCustomerInput.getNickname())
                             .signUpDate(LocalDateTime.now())
+
                             .build();
     }
 

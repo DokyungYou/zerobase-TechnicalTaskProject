@@ -23,3 +23,5 @@ spring:
     hidden-method:
       filter:
         enabled: true
+
+

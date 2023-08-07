@@ -1,4 +1,4 @@
-package com.zerobase.shopreservation.dto.input.partner;
+package com.zerobase.shopreservation.dto.request.partner;
 
 import com.zerobase.shopreservation.dto.Coordinate;
 import com.zerobase.shopreservation.dto.type.ShopType;

@@ -1,4 +1,4 @@
-package com.zerobase.shopreservation.dto.input;
+package com.zerobase.shopreservation.dto.request.customer;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,12 +15,13 @@ public class ArriveCheckInput {
 
     // 키오스크에서는 좀 더 간편하게 사용가능해야하니까
     // 로그인을 핸드폰 번호로 할까
+    // 비밀번호는 생략할까 생각중
 
     @NotBlank(message = "핸드폰 번호는 필수 입력값입니다.")
     private String phoneNumber;
 
-    @NotBlank(message = "비밀번호는 필수 입력값입니다.")
-    private String password;
+//    @NotBlank(message = "비밀번호는 필수 입력값입니다.")
+//    private String password;
 
 
 }

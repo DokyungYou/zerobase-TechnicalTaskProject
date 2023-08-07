@@ -9,11 +9,7 @@ import java.util.Optional;
 @Repository
 public interface UserPartnerRepository extends JpaRepository<UserPartner,Long> {
 
-    Optional<UserPartner> findByEmail(String email);
-
-    Optional<UserPartner> findByPartnerId(String partnerId);
-
-    Optional<UserPartner> findByPhoneNumber(String phoneNumber);
+    Optional<UserPartner> findByUserId(String userId);
 
     Optional<UserPartner> findByBusinessRegistrationNumber(String businessRegistrationNumber);
 

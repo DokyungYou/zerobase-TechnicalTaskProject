@@ -7,7 +7,9 @@ public enum  ShopType {
     WESTERN_FOOD("양식"),
     JAPANESE_FOOD("일식"),
     THAILAND_FOOD("태국음식"),
-    ETC("등등?");
+    FUSION_FOOD("퓨전요리"),
+    MEXICAN_FOOD("멕시코요리"),
+    ETC("기타요리");
 
     private final String typeName;
 

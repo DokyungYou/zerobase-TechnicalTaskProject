@@ -10,8 +10,6 @@ import java.util.Optional;
 @Repository
 public interface ShopRepository extends JpaRepository<Shop,Long> {
 
-    Long countById(Long shopId);
-
     Optional<Shop> findByUserPartnerAndId(UserPartner userPartner, Long id);
 
 }

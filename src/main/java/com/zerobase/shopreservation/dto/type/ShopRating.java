@@ -21,7 +21,6 @@ public enum ShopRating {
     }
 
 
-    // 데이터베이스에 이 값으로 넣는걸로 해보자~~ ^^
     public String getStar(){
         return this.star;
     }

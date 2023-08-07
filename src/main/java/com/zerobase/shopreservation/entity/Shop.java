@@ -1,7 +1,7 @@
 package com.zerobase.shopreservation.entity;
 
 
-import com.zerobase.shopreservation.dto.input.partner.ShopInput;
+import com.zerobase.shopreservation.dto.request.partner.ShopInput;
 import com.zerobase.shopreservation.dto.type.ShopRating;
 import com.zerobase.shopreservation.dto.type.ShopType;
 import lombok.AllArgsConstructor;
@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -29,22 +30,13 @@ public class Shop {
     /**
      * 가게 기본정보
      */
-    @Column(nullable = false)
+    @Column(nullable = false, length = 500)
     private String shopName;
 
 
 
-
-    
-    //이거 지우기 (임시로 아직 냅둠)
-//    @Column
-//    private String shopType;
-
-
-    @Enumerated
-    @ElementCollection
-    private List<ShopType> shopTypes;
-
+    @Column
+    private String shopType;
 
 
 
@@ -129,17 +121,29 @@ public class Shop {
 
 
     @ManyToOne
-    @JoinColumn
+    @JoinColumn(nullable = false)
     UserPartner userPartner;
 
 
+    // 조회 클래스를 따로 만들때 엔티티클래스에 있는 UserPartner에 있는 사업자번호 따로 빼도 될텐데, 이건 여기서는 없어도 될려나
     @Column
     private String businessRegistrationNumber;
 
 
 
+
+
+    @OneToMany(mappedBy = "shop", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Reservation> reservations = new ArrayList<>();
+
+    @OneToMany(mappedBy = "shop", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<Review> reviews = new ArrayList<>();
+
+
+
     // 상점 신규 등록
     public static Shop registerShop(ShopInput shopInput, UserPartner partner){
+
         return Shop.builder()
                     .takeOut(shopInput.isTakeOut())
                     .wifi(shopInput.isWifi())
@@ -162,7 +166,7 @@ public class Shop {
                     .shopName(shopInput.getShopName())
 
 
-                    .shopTypes(shopInput.getShopTypes())
+                    .shopType(Shop.getStringShopTypes(shopInput.getShopTypes()))
 
 
                     .reviewCount(0L)
@@ -196,7 +200,7 @@ public class Shop {
         shop.setShopIntroduction(shopInput.getShopIntroduction());
 
         shop.setShopName(shopInput.getShopName());
-        shop.setShopTypes(shopInput.getShopTypes());
+        shop.setShopType(Shop.getStringShopTypes(shopInput.getShopTypes()));
 
         shop.setBusinessRegistrationNumber(shopInput.getBusinessRegistrationNumber());
         shop.setUpdateDate(LocalDateTime.now());
@@ -206,6 +210,25 @@ public class Shop {
         return shop;
 
     }
+
+    static String getStringShopTypes(List<ShopType> shopTypes){
+
+        if(shopTypes.size() == 1){
+            return shopTypes.get(0).getTypeName();
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < shopTypes.size(); i++) {
+            if(i != shopTypes.size()-1){
+                sb.append(shopTypes.get(i).getTypeName()).append(",");
+            }else{
+                sb.append(shopTypes.get(i).getTypeName());
+            }
+        }
+        return sb.toString();
+    }
+
+
 
 
     public void updateShopRating(Shop shop, ShopRating shopRating){

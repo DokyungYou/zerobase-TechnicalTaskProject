@@ -1,7 +1,7 @@
 package com.zerobase.shopreservation.repository;
 
-import com.zerobase.shopreservation.dto.GetShopList;
-import com.zerobase.shopreservation.dto.input.GetShopListInput;
+import com.zerobase.shopreservation.dto.request.customer.GetShopListInput;
+import com.zerobase.shopreservation.dto.response.ShopListResponse;
 import com.zerobase.shopreservation.dto.type.ShopType;
 import lombok.RequiredArgsConstructor;
 import org.qlrm.mapper.JpaResultMapper;
@@ -18,8 +18,8 @@ public class ShopCustomRepository {
     private final EntityManager entityManager;
 
     // 필요한 컬럼)
-    //pk, 가게이름, 평균별점,총 리뷰수, 가게유형, 예약가능여부, 거리
-    public List<GetShopList> getShopList(GetShopListInput getShopListInput) {
+    //pk, 가게이름, 가게유형, 평균별점 ,총 리뷰수, 예약가능여부, 거리
+    public List<ShopListResponse> getShopList(GetShopListInput getShopListInput) {
 
         String bookable = "";
         if (getShopListInput.getBookable() == null) {
@@ -44,7 +44,7 @@ public class ShopCustomRepository {
 
 
         System.out.println(sql); // 임시 확인용
-        return jpaResultMapper.list(nativeQuery, GetShopList.class);
+        return jpaResultMapper.list(nativeQuery, ShopListResponse.class);
     }
 
 

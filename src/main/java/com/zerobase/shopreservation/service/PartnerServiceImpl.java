@@ -3,10 +3,12 @@ package com.zerobase.shopreservation.service;
 import com.zerobase.shopreservation.common.ResponseMessage;
 import com.zerobase.shopreservation.common.ServiceResult;
 import com.zerobase.shopreservation.common.exception.BizException;
-import com.zerobase.shopreservation.dto.input.partner.ResponseReservationInput;
-import com.zerobase.shopreservation.dto.input.partner.LoginPartnerInput;
-import com.zerobase.shopreservation.dto.input.partner.ShopInput;
-import com.zerobase.shopreservation.dto.input.partner.SignUpPartnerInput;
+import com.zerobase.shopreservation.dto.request.partner.UpdateReservationDateTimeInput;
+import com.zerobase.shopreservation.dto.response.ReservationResponse;
+import com.zerobase.shopreservation.dto.request.partner.ResponseReservationInput;
+import com.zerobase.shopreservation.dto.request.LoginInput;
+import com.zerobase.shopreservation.dto.request.partner.ShopInput;
+import com.zerobase.shopreservation.dto.request.partner.SignUpPartnerInput;
 import com.zerobase.shopreservation.entity.Reservation;
 import com.zerobase.shopreservation.entity.Shop;
 import com.zerobase.shopreservation.entity.UserPartner;
@@ -15,12 +17,10 @@ import com.zerobase.shopreservation.repository.ShopRepository;
 import com.zerobase.shopreservation.repository.UserPartnerRepository;
 
 import com.zerobase.shopreservation.dto.type.ReservationStatus;
-import com.zerobase.shopreservation.util.JWTUtils;
+import com.zerobase.shopreservation.util.JwtUtils;
 import com.zerobase.shopreservation.util.PasswordUtils;
 import lombok.RequiredArgsConstructor;
-//import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -60,36 +60,34 @@ public class PartnerServiceImpl implements PartnerService{
 
     //파트너 로그인 (1시간짜리 토큰 생성)
     @Override
-    public ResponseMessage login(LoginPartnerInput loginPartnerInput) {
+    public ResponseMessage login(LoginInput loginInput) {
 
         Optional<UserPartner> byBusinessRegistrationNumber
-                = userPartnerRepository.findByPartnerId(loginPartnerInput.getPartnerId());
+                = userPartnerRepository.findByUserId(loginInput.getId());
 
-        if(!byBusinessRegistrationNumber.isPresent()){
+        if(byBusinessRegistrationNumber.isEmpty()){
             return ResponseMessage.fail("로그인에 실패했습니다.");
         }
 
         UserPartner partner = byBusinessRegistrationNumber.get();
-        if(!PasswordUtils.equalPassword(loginPartnerInput.getPassword(),partner.getPassword())){
+        if(!PasswordUtils.equalPassword(loginInput.getPassword(),partner.getPassword())){
             return ResponseMessage.fail("로그인에 실패했습니다.");
         }
 
-        //로그인 성공 (토큰 부여) 메소드 수정필요
-        String partnerToken = JWTUtils.createToken(partner);
 
-
+        String partnerToken = JwtUtils.createToken(partner);
         return ResponseMessage.success(partnerToken);
     }
 
 
     // 상점 신규 등록
     @Override
-    public ServiceResult registerShop(ShopInput shopInput, String email) {
+    public ServiceResult registerShop(ShopInput shopInput, String businessRegistrationNumber) {
 
         Optional<UserPartner> optionalUserPartner
-                = userPartnerRepository.findByEmail(email);
-        if(!optionalUserPartner.isPresent()){
-            return ServiceResult.fail("해당 이메일없.");
+                = userPartnerRepository.findByBusinessRegistrationNumber(businessRegistrationNumber);
+        if(optionalUserPartner.isEmpty()){
+            return ServiceResult.fail("존재하지 않는 파트너입니다.");
         }
 
         UserPartner partner = optionalUserPartner.get();
@@ -100,15 +98,13 @@ public class PartnerServiceImpl implements PartnerService{
 
 
 
-
-    // 엔티티로 받아야하나 싶기도하고
     @Override
-    public ServiceResult updateShop(Long shopId, String email, ShopInput updateShopInput) {
+    public ServiceResult updateShop(Long shopId, String businessRegistrationNumber, ShopInput updateShopInput) {
 
         Optional<UserPartner> optionalUserPartner
-                = userPartnerRepository.findByEmail(email);
-        if(!optionalUserPartner.isPresent()){
-            return ServiceResult.fail("해당 이메일없.");
+                = userPartnerRepository.findByBusinessRegistrationNumber(businessRegistrationNumber);
+        if(optionalUserPartner.isEmpty()){
+            return ServiceResult.fail("존재하지 않는 파트너입니다.");
         }
 
         UserPartner partner = optionalUserPartner.get();
@@ -127,35 +123,34 @@ public class PartnerServiceImpl implements PartnerService{
 
     // 전체 예약목록 확인(날짜순 정렬)
     @Override
-    public List<Reservation> getReservation(String email, Long shopId) {
-       //일단 이메일로 들여왔는데, 나중에 다른걸로 바꿀것
-        
-        // shopId로 shop 불러오고 그 shop의 파트너의 email(혹은 사업자등록번호 등의 데이터)의 데이터 일치하는지 확인
-        // 일치하면 그 shop 객체가 조인돼있는 예약정보 불러오기
+    public List<ReservationResponse> getReservation(String businessRegistrationNumber, Long shopId) {
+
+
         Optional<Shop> optionalShop = shopRepository.findById(shopId);
         if(optionalShop.isEmpty()){
             throw new BizException("존재하지 않는 상점입니다.");
         }
 
         Shop shop = optionalShop.get();
-       if(!shop.getUserPartner().getEmail().equals(email)){
+       if(!shop.getUserPartner().getBusinessRegistrationNumber().equals(businessRegistrationNumber)){
            throw new BizException("파트너의 상점이 아닙니다.");
        }
 
-       return reservationRepository.findByShopOrderByReservationDateTime(shop);
+        return ReservationResponse.getReservationList(reservationRepository.findByShopOrderByReservationDateTime(shop));
     }
 
 
-    //예약 상태 변경 (거절, 승인, 취소, 도착)
+    // 예약 상태 변경 (거절, 승인, 취소, 도착,결제완료)
+    // 이미 결제완료 상태로 넣었으면 더이상 변경 불가능
     @Override
-    public ServiceResult responseReservation(Long shopId,String email, ResponseReservationInput responseReservationInput) {
+    public ServiceResult updateReservationStatus(Long shopId,String businessRegistrationNumber, ResponseReservationInput responseReservationInput) {
         Optional<Shop> optionalShop = shopRepository.findById(shopId);
         if(optionalShop.isEmpty()){
             return ServiceResult.fail("존재하지 않는 가게입니다.");
         }
 
         Shop shop = optionalShop.get();
-        if(!shop.getUserPartner().getEmail().equals(email)){
+        if(!shop.getUserPartner().getBusinessRegistrationNumber().equals(businessRegistrationNumber)){
             return ServiceResult.fail("해당 가게의 파트너가 아닙니다.");
         }
 
@@ -164,18 +159,88 @@ public class PartnerServiceImpl implements PartnerService{
         if(optionalReservation.isEmpty()){
             return ServiceResult.fail("존재하지 않는 예약입니다.");
         }
+        Reservation reservation = optionalReservation.get();
 
-
-        // 인풋에 이 데이터 notnull 붙여놨긴했는데, 되는지 안되는지 몰라서 일단 넣어놓은 되면 이거는 삭제해도 됨
-        if(responseReservationInput.getReservationStatus() == null){
-            responseReservationInput.setReservationStatus(ReservationStatus.WAITING);
+        if(reservation.getReservationStatus() == ReservationStatus.COMPLETED_PAYMENT){
+            return ServiceResult.fail("이미 결제완료한 예약 건은 상태변경이 불가합니다.");
         }
 
 
-        Reservation reservation = optionalReservation.get();
         reservation.setReservationStatus(responseReservationInput.getReservationStatus());
+        reservation.setStatusUpdate(LocalDateTime.now());
 
         reservationRepository.save(reservation);
+        return ServiceResult.success();
+    }
+
+
+    // 예약날짜 변경
+    @Override
+    public ServiceResult updateReservationDateTime(Long shopId, String businessRegistrationNumber, UpdateReservationDateTimeInput updateReservationDateTimeInput) {
+        Optional<Shop> optionalShop = shopRepository.findById(shopId);
+        if(optionalShop.isEmpty()){
+            return ServiceResult.fail("존재하지 않는 가게입니다.");
+        }
+
+        Shop shop = optionalShop.get();
+        if(!shop.getUserPartner().getBusinessRegistrationNumber().equals(businessRegistrationNumber)){
+            return ServiceResult.fail("해당 가게의 파트너가 아닙니다.");
+        }
+
+        // 지정한 가게의 특정 예약데이터 가져오기
+        Optional<Reservation> optionalReservation = reservationRepository.findByIdAndShop(updateReservationDateTimeInput.getReservationId(), shop);
+        if(optionalReservation.isEmpty()){
+            return ServiceResult.fail("존재하지 않는 예약입니다.");
+        }
+        Reservation reservation = optionalReservation.get();
+
+
+        // 가게에서 직접 예약날짜, 시간 변경시엔 당일도 가능 (과거만 불가능)
+        LocalDateTime updateDateTime = Reservation.FromDateString(updateReservationDateTimeInput.getReservationDateTime());
+        if(updateDateTime.isBefore(LocalDateTime.now())){
+            return ServiceResult.fail("예약이 가능한 날짜가 아닙니다. (과거의 날짜 및 시간)");
+        }
+        
+        reservation.setReservationDateTime(updateDateTime);
+        reservationRepository.save(reservation);
+        return ServiceResult.success();
+    }
+
+
+    @Override
+    public ServiceResult deleteShop(Long shopId, String businessRegistrationNumber) {
+
+        Optional<Shop> optionalShop = shopRepository.findById(shopId);
+        if(optionalShop.isEmpty()){
+            throw new BizException("존재하지 않는 상점입니다.");
+        }
+
+        Shop shop = optionalShop.get();
+        if(!shop.getUserPartner().getBusinessRegistrationNumber().equals(businessRegistrationNumber)){
+            throw new BizException("파트너의 상점이 아닙니다.");
+        }
+
+
+        shopRepository.delete(shop);
+        return ServiceResult.success();
+    }
+
+
+    @Override
+    public ServiceResult deletePartner(String businessRegistrationNumber){
+        Optional<UserPartner> optionalUserPartner
+                = userPartnerRepository.findByBusinessRegistrationNumber(businessRegistrationNumber);
+        if(optionalUserPartner.isEmpty()){
+            return ServiceResult.fail("존재하지 않는 파트너입니다.");
+        }
+
+        UserPartner partner = optionalUserPartner.get();
+
+
+        try{userPartnerRepository.delete(partner);
+        }catch (Exception e){ //본래는 SQLIntegrityConstraintViolationException 이 발생하나 예외처리가 안돼서 일단 상위클래스인 Exception 로 처리하였음
+            return  ServiceResult.fail("회원탈퇴 실패 (해당 파트너계정으로 등록된 상점이 존재합니다.)");
+        }
         return ServiceResult.success();
     }
 }

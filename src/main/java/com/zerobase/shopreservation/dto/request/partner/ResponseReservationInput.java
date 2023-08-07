@@ -1,4 +1,4 @@
-package com.zerobase.shopreservation.dto.input.partner;
+package com.zerobase.shopreservation.dto.request.partner;
 
 import com.zerobase.shopreservation.dto.type.ReservationStatus;
 import lombok.AllArgsConstructor;
@@ -18,7 +18,7 @@ public class ResponseReservationInput {
     @NotNull(message = "예약 아이디는 필수입력값입니다.")
     private Long reservationId;
 
-    @NotNull   // 보니까 여기에 어노테이션 안 붙여놨던데 안됐었나?
+    @NotNull(message = "예약 상태는 필수입력값입니다.")
     private ReservationStatus reservationStatus;
 
 

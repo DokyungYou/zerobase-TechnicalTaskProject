@@ -1,4 +1,4 @@
-package com.zerobase.shopreservation.dto.input.partner;
+package com.zerobase.shopreservation.dto.request.partner;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,7 +14,8 @@ import javax.validation.constraints.Size;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SignUpPartnerInput {
+public class
+SignUpPartnerInput {
 
     @NotBlank(message = "사업자등록번호는 필수 입력값입니다.")
     @Pattern(regexp = "^\\d{3}-\\d{2}-\\d{5}$", message = "사업자 등록 번호 형태가 아닙니다.")

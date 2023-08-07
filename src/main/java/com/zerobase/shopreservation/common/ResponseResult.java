@@ -5,15 +5,10 @@ import lombok.Data;
 import org.springframework.http.ResponseEntity;
 
 @Data
-//이거 있으니까 동일한 생성자 있다고 안되는데?
-//@AllArgsConstructor
-//@NoArgsConstructor
 @Builder
 public class ResponseResult {
 
     public static ResponseEntity<?> success(){
-
-//        return ResponseEntity.ok().body(ResponseMessage.success());
         return success(null);
     }
 

@@ -1,4 +1,4 @@
-package com.zerobase.shopreservation.dto.input;
+package com.zerobase.shopreservation.dto.request.customer;
 
 import com.zerobase.shopreservation.dto.type.ShopRating;
 import lombok.AllArgsConstructor;
@@ -15,8 +15,6 @@ import javax.validation.constraints.NotNull;
 public class ReviewInput {
 
 
-    
-    // 사실 이건 넣어야할지 말지 고민중
     @NotNull
     private long shopId;
 
@@ -24,7 +22,7 @@ public class ReviewInput {
     private String contents;
 
 
-    @NotNull //여기에 쓸 수 있나?
+    @NotNull(message = "별점은 필수항목입니다.")
     private ShopRating rating;
 
 }

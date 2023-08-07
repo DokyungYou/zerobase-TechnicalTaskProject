@@ -1,5 +1,6 @@
 package com.zerobase.shopreservation.entity;
 
+import com.zerobase.shopreservation.dto.request.customer.ReviewInput;
 import com.zerobase.shopreservation.dto.type.ShopRating;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,30 +22,52 @@ public class Review {
     private Long id;
 
 
-    @Column
+    @Column(length = 500)
     private String content;
 
+    
     @Column
     @Enumerated(EnumType.STRING)
-    private ShopRating star;
+    private ShopRating rating;
 
 
-    // 만약에 가게가 폐업하면 shop데이터를 삭제해야하는데
-    // 여기서 shop을 조인하고 있어서 못 지울텐데.. 흠...
-    @ManyToOne
-    @JoinColumn
+    @Column
+    private String ratingStar;
+
+
+
+    @ManyToOne (fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false)
     private Shop shop;
 
- 
-    // 아이디(Customer pk나 이메일  or 아이디)만 넣을지 UserCustomer 로 넣을지 고민
-    // 근데 생각해보니 닉네임이 들어가게 해야할듯
-    @ManyToOne
-    @JoinColumn
-    private UserCustomer userCustomer;
+
+    @Column
+    private Long reservedId;
+
+
+    // 리뷰는 이용자가 회원탈퇴해도 남게끔 참조키를 사용하지 않았음
+    @Column
+    private Long userId;
+
+    @Column
+    private String userNickname;
 
 
     @Column
     private LocalDateTime regDate;
 
 
+    public static Review writeReview(Long reservedId, ReviewInput reviewInput, Shop shop, UserCustomer userCustomer){
+        return Review.builder()
+                        .content(reviewInput.getContents())
+                        .shop(shop)
+                        .reservedId(reservedId)
+
+                        .userId(userCustomer.getId())  //pk
+                        .userNickname(userCustomer.getUserId())
+                        .regDate(LocalDateTime.now())
+                        .rating(reviewInput.getRating())
+                        .ratingStar(reviewInput.getRating().getStar())
+                        .build();
+    }
 }
